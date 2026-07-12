@@ -8,37 +8,89 @@ export const AuthProvider = ({ children }) => {
   const [token, setToken]     = useState(() => localStorage.getItem('assetflow_token'));
   const [loading, setLoading] = useState(true);
 
-  // Rehydrate user from localStorage on mount
+  // ── On mount: validate token with the server (/auth/me) ──────────────────
   useEffect(() => {
-    const storedUser = localStorage.getItem('assetflow_user');
-    if (storedUser && token) {
-      try {
-        setUser(JSON.parse(storedUser));
-      } catch {
-        // corrupted data — clear it
-        localStorage.removeItem('assetflow_user');
+    const validateSession = async () => {
+      const storedToken = localStorage.getItem('assetflow_token');
+      if (!storedToken) {
+        setLoading(false);
+        return;
       }
-    }
-    setLoading(false);
-  }, [token]);
+      try {
+        const { data } = await api.get('/auth/me');
+        setUser(data.data.user);
+        setToken(storedToken);
+      } catch {
+        // Token invalid / expired — clear everything
+        localStorage.removeItem('assetflow_token');
+        localStorage.removeItem('assetflow_user');
+        setToken(null);
+        setUser(null);
+      } finally {
+        setLoading(false);
+      }
+    };
+    validateSession();
+  }, []); // runs once on mount
 
+  // ── Persist user to localStorage whenever it changes ─────────────────────
+  useEffect(() => {
+    if (user) {
+      localStorage.setItem('assetflow_user', JSON.stringify(user));
+    } else {
+      localStorage.removeItem('assetflow_user');
+    }
+  }, [user]);
+
+  // ─────────────────────────────────────────────────────────────────────────
   const login = useCallback(async (email, password) => {
-    // Will be implemented in Phase 2
     const { data } = await api.post('/auth/login', { email, password });
-    const { token: jwt, data: { user: userData } } = data;
+    const { token: jwt, user: userData } = data.data;
     localStorage.setItem('assetflow_token', jwt);
-    localStorage.setItem('assetflow_user', JSON.stringify(userData));
     setToken(jwt);
     setUser(userData);
     return userData;
   }, []);
 
-  const logout = useCallback(() => {
-    localStorage.removeItem('assetflow_token');
-    localStorage.removeItem('assetflow_user');
-    setToken(null);
-    setUser(null);
+  const signup = useCallback(async (name, email, password, confirmPassword) => {
+    const { data } = await api.post('/auth/signup', {
+      name,
+      email,
+      password,
+      confirmPassword,
+    });
+    // Signup returns a token too — log them straight in
+    const { token: jwt, user: userData } = data.data;
+    localStorage.setItem('assetflow_token', jwt);
+    setToken(jwt);
+    setUser(userData);
+    return userData;
   }, []);
+
+  const logout = useCallback(async () => {
+    try {
+      await api.post('/auth/logout');
+    } catch {
+      // ignore — clear locally regardless
+    } finally {
+      localStorage.removeItem('assetflow_token');
+      localStorage.removeItem('assetflow_user');
+      setToken(null);
+      setUser(null);
+    }
+  }, []);
+
+  /**
+   * hasRole('Admin')                    → true if user.role === 'Admin'
+   * hasRole('Admin', 'AssetManager')    → true if user.role is either
+   */
+  const hasRole = useCallback(
+    (...roles) => {
+      if (!user) return false;
+      return roles.includes(user.role);
+    },
+    [user]
+  );
 
   const value = {
     user,
@@ -46,7 +98,9 @@ export const AuthProvider = ({ children }) => {
     loading,
     isAuthenticated: !!token && !!user,
     login,
+    signup,
     logout,
+    hasRole,
   };
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

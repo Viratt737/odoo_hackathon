@@ -1,34 +1,46 @@
 import { BrowserRouter, Routes, Route, Navigate } from 'react-router-dom';
-import { AuthProvider, useAuth } from './context/AuthContext';
+import { AuthProvider }    from './context/AuthContext';
+import ProtectedRoute      from './components/ProtectedRoute';
+import Layout              from './components/Layout';
 
-import Layout          from './components/Layout';
-import Login           from './pages/Login';
-import Dashboard       from './pages/Dashboard';
-import OrgSetup        from './pages/OrgSetup';
-import AssetDirectory  from './pages/AssetDirectory';
-import Allocation      from './pages/Allocation';
-import Booking         from './pages/Booking';
-import Maintenance     from './pages/Maintenance';
-import Audit           from './pages/Audit';
-import Reports         from './pages/Reports';
-import Notifications   from './pages/Notifications';
+// Public pages
+import Login          from './pages/Login';
+import Signup         from './pages/Signup';
+import ForgotPassword from './pages/ForgotPassword';
+import ResetPassword  from './pages/ResetPassword';
 
-// Guard: redirect to /login if not authenticated
-// NOTE: For Phase 1 scaffolding, auth guard is relaxed so the app is browsable without a backend.
-// In Phase 2, flip `allowGuest` to false.
-const ProtectedRoute = ({ children, allowGuest = true }) => {
+// Protected pages
+import Dashboard      from './pages/Dashboard';
+import OrgSetup       from './pages/OrgSetup';
+import AssetDirectory from './pages/AssetDirectory';
+import Allocation     from './pages/Allocation';
+import Booking        from './pages/Booking';
+import Maintenance    from './pages/Maintenance';
+import Audit          from './pages/Audit';
+import Reports        from './pages/Reports';
+import Notifications  from './pages/Notifications';
+
+/**
+ * PublicOnlyRoute — redirect authenticated users away from login/signup
+ * so they don't land on the login page while already signed in.
+ */
+import { useAuth } from './context/AuthContext';
+const PublicOnlyRoute = ({ children }) => {
   const { isAuthenticated, loading } = useAuth();
   if (loading) return null;
-  if (!allowGuest && !isAuthenticated) return <Navigate to="/login" replace />;
+  if (isAuthenticated) return <Navigate to="/dashboard" replace />;
   return children;
 };
 
 const AppRoutes = () => (
   <Routes>
-    {/* Public */}
-    <Route path="/login" element={<Login />} />
+    {/* ── Public (unauthenticated only) ──────────────────────────────────── */}
+    <Route path="/login"  element={<PublicOnlyRoute><Login /></PublicOnlyRoute>} />
+    <Route path="/signup" element={<PublicOnlyRoute><Signup /></PublicOnlyRoute>} />
+    <Route path="/forgot-password" element={<ForgotPassword />} />
+    <Route path="/reset-password/:token" element={<ResetPassword />} />
 
-    {/* Protected — Layout wraps all authenticated pages */}
+    {/* ── Protected (all authenticated users — Layout wraps them) ────────── */}
     <Route
       element={
         <ProtectedRoute>
@@ -37,18 +49,48 @@ const AppRoutes = () => (
       }
     >
       <Route index element={<Navigate to="/dashboard" replace />} />
-      <Route path="dashboard"       element={<Dashboard />} />
-      <Route path="org-setup"       element={<OrgSetup />} />
-      <Route path="assets"          element={<AssetDirectory />} />
-      <Route path="allocation"      element={<Allocation />} />
-      <Route path="booking"         element={<Booking />} />
-      <Route path="maintenance"     element={<Maintenance />} />
-      <Route path="audit"           element={<Audit />} />
-      <Route path="reports"         element={<Reports />} />
-      <Route path="notifications"   element={<Notifications />} />
+
+      {/* All authenticated users */}
+      <Route path="dashboard"     element={<Dashboard />} />
+      <Route path="booking"       element={<Booking />} />
+      <Route path="notifications" element={<Notifications />} />
+
+      {/* Asset Manager + Admin */}
+      <Route path="assets"      element={
+        <ProtectedRoute roles={['Admin', 'AssetManager', 'DepartmentHead']}>
+          <AssetDirectory />
+        </ProtectedRoute>
+      } />
+      <Route path="allocation"  element={
+        <ProtectedRoute roles={['Admin', 'AssetManager']}>
+          <Allocation />
+        </ProtectedRoute>
+      } />
+      <Route path="maintenance" element={
+        <ProtectedRoute roles={['Admin', 'AssetManager']}>
+          <Maintenance />
+        </ProtectedRoute>
+      } />
+      <Route path="audit"       element={
+        <ProtectedRoute roles={['Admin', 'AssetManager']}>
+          <Audit />
+        </ProtectedRoute>
+      } />
+
+      {/* Department Head + Admin */}
+      <Route path="org-setup" element={
+        <ProtectedRoute roles={['Admin', 'DepartmentHead']}>
+          <OrgSetup />
+        </ProtectedRoute>
+      } />
+      <Route path="reports"   element={
+        <ProtectedRoute roles={['Admin', 'AssetManager', 'DepartmentHead']}>
+          <Reports />
+        </ProtectedRoute>
+      } />
     </Route>
 
-    {/* Fallback */}
+    {/* ── Fallback ──────────────────────────────────────────────────────── */}
     <Route path="*" element={<Navigate to="/dashboard" replace />} />
   </Routes>
 );
