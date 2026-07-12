@@ -57,8 +57,32 @@ PORT=5000
 ## Project Structure
 
 ```
-backend/
-frontend/
+AssetFlow
+├── backend
+│   ├── config
+│   ├── controllers
+│   ├── middleware
+│   ├── models
+│   ├── routes
+│   ├── seeders
+│   ├── utils
+│   ├── server.js
+│   └── package.json
+│
+├── frontend
+│   ├── src
+│   │   ├── components
+│   │   ├── context
+│   │   ├── hooks
+│   │   ├── pages
+│   │   ├── services
+│   │   ├── App.jsx
+│   │   └── main.jsx
+│   ├── public
+│   ├── index.html
+│   └── package.json
+│
+└── README.md
 ```
 
 ## License
