@@ -8,7 +8,7 @@ const ApiError  = require('./ApiError');
  * Value: set of valid next statuses
  */
 const TRANSITIONS = {
-  Available:        new Set(['Allocated', 'Reserved', 'UnderMaintenance', 'Retired', 'Disposed']),
+  Available:        new Set(['Allocated', 'Reserved', 'UnderMaintenance', 'Retired', 'Disposed', 'Lost']),
   Allocated:        new Set(['Available', 'UnderMaintenance', 'Lost']),
   Reserved:         new Set(['Available', 'Allocated']),
   UnderMaintenance: new Set(['Available', 'Retired', 'Disposed']),
