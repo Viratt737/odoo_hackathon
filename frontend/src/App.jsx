@@ -13,6 +13,7 @@ import ResetPassword  from './pages/ResetPassword';
 import Dashboard      from './pages/Dashboard';
 import OrgSetup       from './pages/OrgSetup';
 import AssetDirectory from './pages/AssetDirectory';
+import AssetDetail    from './pages/AssetDetail';
 import Allocation     from './pages/Allocation';
 import Booking        from './pages/Booking';
 import Maintenance    from './pages/Maintenance';
@@ -59,6 +60,11 @@ const AppRoutes = () => (
       <Route path="assets"      element={
         <ProtectedRoute roles={['Admin', 'AssetManager', 'DepartmentHead']}>
           <AssetDirectory />
+        </ProtectedRoute>
+      } />
+      <Route path="assets/:id"  element={
+        <ProtectedRoute roles={['Admin', 'AssetManager', 'DepartmentHead']}>
+          <AssetDetail />
         </ProtectedRoute>
       } />
       <Route path="allocation"  element={

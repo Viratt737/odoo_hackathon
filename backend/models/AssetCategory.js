@@ -1,5 +1,21 @@
 const mongoose = require('mongoose');
 
+const customFieldSchema = new mongoose.Schema(
+  {
+    fieldName: {
+      type: String,
+      required: true,
+      trim: true,
+    },
+    fieldType: {
+      type: String,
+      enum: ['text', 'number', 'date', 'boolean'],
+      default: 'text',
+    },
+  },
+  { _id: false } // embedded — no separate _id per field
+);
+
 const assetCategorySchema = new mongoose.Schema(
   {
     name: {
@@ -18,6 +34,7 @@ const assetCategorySchema = new mongoose.Schema(
     description: {
       type: String,
       trim: true,
+      default: '',
     },
     parentCategory: {
       type: mongoose.Schema.Types.ObjectId,
@@ -33,14 +50,22 @@ const assetCategorySchema = new mongoose.Schema(
     usefulLifeYears: {
       type: Number,
       default: null,
+      min: 0,
     },
     maintenanceIntervalDays: {
       type: Number,
       default: null,
+      min: 0,
     },
-    isActive: {
-      type: Boolean,
-      default: true,
+    // Category-specific flexible custom fields
+    customFields: {
+      type: [customFieldSchema],
+      default: [],
+    },
+    status: {
+      type: String,
+      enum: ['Active', 'Inactive'],
+      default: 'Active',
     },
   },
   { timestamps: true }

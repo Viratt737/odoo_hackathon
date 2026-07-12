@@ -9,12 +9,13 @@ const allocationSchema = new mongoose.Schema(
     },
     allocatedTo: {
       type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      required: [true, 'User reference is required'],
+      required: [true, 'Allocated entity reference is required'],
+      refPath: 'allocatedModel',
     },
-    department: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Department',
+    allocatedModel: {
+      type: String,
+      required: [true, 'Allocated entity type is required'],
+      enum: ['User', 'Department'],
     },
     allocatedBy: {
       type: mongoose.Schema.Types.ObjectId,
@@ -29,35 +30,31 @@ const allocationSchema = new mongoose.Schema(
       type: Date,
       default: null,
     },
-    returnDate: {
+    actualReturnDate: {
       type: Date,
       default: null,
     },
     status: {
       type: String,
-      enum: ['active', 'returned', 'overdue', 'revoked'],
-      default: 'active',
+      enum: ['Active', 'Returned', 'Transferred'],
+      default: 'Active',
     },
-    purpose: {
+    conditionNotesOnReturn: {
       type: String,
       trim: true,
-    },
-    conditionAtAllocation: {
-      type: String,
-      enum: ['new', 'good', 'fair', 'poor'],
-      default: 'good',
-    },
-    conditionAtReturn: {
-      type: String,
-      enum: ['good', 'fair', 'poor', 'damaged'],
-      default: null,
+      default: '',
     },
     notes: {
       type: String,
       trim: true,
+      default: '',
     },
   },
   { timestamps: true }
 );
+
+// Index for common queries
+allocationSchema.index({ asset: 1, status: 1 });
+allocationSchema.index({ allocatedTo: 1, status: 1 });
 
 module.exports = mongoose.model('Allocation', allocationSchema);

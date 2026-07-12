@@ -1,11 +1,28 @@
 const express = require('express');
-const router = express.Router();
-const { getAllocations, getAllocation, createAllocation, updateAllocation, returnAllocation } = require('../controllers/allocationController');
+const router  = express.Router();
+const { protect } = require('../middleware/auth');
 
-router.get('/', getAllocations);
-router.post('/', createAllocation);
-router.get('/:id', getAllocation);
-router.put('/:id', updateAllocation);
-router.patch('/:id/return', returnAllocation);
+const {
+  getAllocations,
+  getOverdueAllocations,
+  createAllocation,
+  returnAllocation,
+  requestTransfer,
+  getTransfers,
+  approveTransfer,
+} = require('../controllers/allocationController');
+
+// All allocation routes require authentication
+router.use(protect);
+
+router.get('/',                    getAllocations);
+router.get('/overdue',             getOverdueAllocations);
+router.post('/',                   createAllocation);
+router.patch('/:id/return',        returnAllocation);
+
+// Polymorphic transfers
+router.get('/transfers',           getTransfers);
+router.post('/transfers',          requestTransfer);
+router.patch('/transfers/:id/approve', approveTransfer);
 
 module.exports = router;

@@ -1,6 +1,7 @@
 require('dotenv').config();
 require('express-async-errors');
 
+const path     = require('path');
 const express  = require('express');
 const cors     = require('cors');
 const helmet   = require('helmet');
@@ -33,6 +34,9 @@ app.use(morgan(process.env.NODE_ENV === 'production' ? 'combined' : 'dev'));
 // ─── Body Parsing ─────────────────────────────────────────────────────────────
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
+
+// ─── Static files — uploaded asset photos & documents ───────────────────────
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 // ─── API Routes ───────────────────────────────────────────────────────────────
 app.use('/api', routes);

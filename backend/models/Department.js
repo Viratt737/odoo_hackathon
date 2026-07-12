@@ -18,6 +18,7 @@ const departmentSchema = new mongoose.Schema(
     description: {
       type: String,
       trim: true,
+      default: '',
     },
     head: {
       type: mongoose.Schema.Types.ObjectId,
@@ -29,17 +30,20 @@ const departmentSchema = new mongoose.Schema(
       ref: 'Department',
       default: null,
     },
-    isActive: {
-      type: Boolean,
-      default: true,
+    status: {
+      type: String,
+      enum: ['Active', 'Inactive'],
+      default: 'Active',
     },
     location: {
       type: String,
       trim: true,
+      default: '',
     },
     budget: {
       type: Number,
       default: 0,
+      min: 0,
     },
   },
   { timestamps: true }
