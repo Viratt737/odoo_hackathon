@@ -7,63 +7,60 @@ const maintenanceRequestSchema = new mongoose.Schema(
       ref: 'Asset',
       required: [true, 'Asset reference is required'],
     },
-    requestedBy: {
+    raisedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      required: [true, 'Requesting user is required'],
+      required: [true, 'Requesting user reference is required'],
     },
-    assignedTo: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      default: null,
-    },
-    type: {
+    issueDescription: {
       type: String,
-      enum: ['preventive', 'corrective', 'emergency', 'inspection'],
-      required: [true, 'Maintenance type is required'],
+      required: [true, 'Issue description is required'],
+      trim: true,
     },
     priority: {
       type: String,
-      enum: ['low', 'medium', 'high', 'critical'],
-      default: 'medium',
+      enum: ['Low', 'Medium', 'High'],
+      default: 'Medium',
+    },
+    attachedPhoto: {
+      type: String,
+      default: null,
     },
     status: {
       type: String,
-      enum: ['open', 'in_progress', 'completed', 'cancelled', 'deferred'],
-      default: 'open',
+      enum: ['Pending', 'Approved', 'Rejected', 'TechnicianAssigned', 'InProgress', 'Resolved'],
+      default: 'Pending',
     },
-    title: {
+    assignedTechnician: {
       type: String,
-      required: [true, 'Title is required'],
+      default: '',
       trim: true,
     },
-    description: {
-      type: String,
-      trim: true,
+    approvedBy: {
+      type: mongoose.Schema.Types.ObjectId,
+      ref: 'User',
+      default: null,
     },
-    scheduledDate: {
+    resolvedAt: {
       type: Date,
       default: null,
     },
-    completedDate: {
-      type: Date,
-      default: null,
+    resolutionNotes: {
+      type: String,
+      default: '',
+      trim: true,
     },
     cost: {
       type: Number,
       default: 0,
+      min: 0,
     },
-    vendor: {
-      type: String,
-      trim: true,
-    },
-    resolutionNotes: {
-      type: String,
-      trim: true,
-    },
-    attachments: [String],
   },
   { timestamps: true }
 );
+
+// Indexes
+maintenanceRequestSchema.index({ asset: 1, status: 1 });
+maintenanceRequestSchema.index({ raisedBy: 1 });
 
 module.exports = mongoose.model('MaintenanceRequest', maintenanceRequestSchema);

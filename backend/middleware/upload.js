@@ -5,7 +5,9 @@ const ApiError = require('../utils/ApiError');
 // ─── Storage configuration ────────────────────────────────────────────────────
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
-    const folder = file.fieldname === 'photos' ? 'uploads/photos' : 'uploads/documents';
+    const folder = (file.fieldname === 'photos' || file.fieldname === 'attachedPhoto')
+      ? 'uploads/photos'
+      : 'uploads/documents';
     cb(null, path.join(__dirname, '..', folder));
   },
   filename: (req, file, cb) => {
@@ -17,7 +19,7 @@ const storage = multer.diskStorage({
 
 // ─── File filter ──────────────────────────────────────────────────────────────
 const fileFilter = (req, file, cb) => {
-  if (file.fieldname === 'photos') {
+  if (file.fieldname === 'photos' || file.fieldname === 'attachedPhoto') {
     if (!file.mimetype.startsWith('image/')) {
       return cb(new ApiError(400, 'Photos must be image files (jpg, png, webp, etc.)'));
     }
@@ -55,4 +57,9 @@ const uploadAssetFiles = upload.fields([
   { name: 'documents', maxCount: 3 },
 ]);
 
-module.exports = { uploadAssetFiles };
+/**
+ * uploadMaintenancePhoto — middleware for maintenance request photos.
+ */
+const uploadMaintenancePhoto = upload.single('attachedPhoto');
+
+module.exports = { uploadAssetFiles, uploadMaintenancePhoto };

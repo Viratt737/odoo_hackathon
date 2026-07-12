@@ -2,62 +2,44 @@ const mongoose = require('mongoose');
 
 const bookingSchema = new mongoose.Schema(
   {
-    asset: {
+    resource: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'Asset',
-      required: [true, 'Asset reference is required'],
+      required: [true, 'Resource reference is required'],
     },
     bookedBy: {
       type: mongoose.Schema.Types.ObjectId,
       ref: 'User',
-      required: [true, 'User reference is required'],
+      required: [true, 'Booking user reference is required'],
     },
-    department: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'Department',
-    },
-    approvedBy: {
-      type: mongoose.Schema.Types.ObjectId,
-      ref: 'User',
-      default: null,
-    },
-    startDateTime: {
+    startTime: {
       type: Date,
-      required: [true, 'Booking start date/time is required'],
+      required: [true, 'Start date and time are required'],
     },
-    endDateTime: {
+    endTime: {
       type: Date,
-      required: [true, 'Booking end date/time is required'],
+      required: [true, 'End date and time are required'],
     },
     status: {
       type: String,
-      enum: ['pending', 'approved', 'rejected', 'cancelled', 'completed', 'no_show'],
-      default: 'pending',
+      enum: ['Upcoming', 'Ongoing', 'Completed', 'Cancelled'],
+      default: 'Upcoming',
     },
     purpose: {
       type: String,
+      required: [true, 'Purpose of booking is required'],
       trim: true,
-      required: [true, 'Booking purpose is required'],
-    },
-    rejectionReason: {
-      type: String,
-      trim: true,
-      default: null,
-    },
-    checkInTime: {
-      type: Date,
-      default: null,
-    },
-    checkOutTime: {
-      type: Date,
-      default: null,
     },
     notes: {
       type: String,
       trim: true,
+      default: '',
     },
   },
   { timestamps: true }
 );
+
+// Indexes to speed up overlap queries
+bookingSchema.index({ resource: 1, status: 1, startTime: 1, endTime: 1 });
 
 module.exports = mongoose.model('Booking', bookingSchema);
